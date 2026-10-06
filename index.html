@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<!--
+  Network Tool Suite
+  Copyright (c) 2026 ENG.Mohammed. Released under the MIT License.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="author" content="ENG.Mohammed">
+<meta name="copyright" content="Copyright (c) 2026 ENG.Mohammed">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Network Tool Suite | Subnet, VLSM, IPv6 &amp; Throughput Calculators</title>
+<meta name="description" content="Client-side network engineering toolkit: IPv4 subnet calculator, VLSM planner, IP base converter, IPv6 tools and transfer-time calculator.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://network-tool-suite.vercel.app/">
+<meta name="theme-color" content="#070b12">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Network Tool Suite">
+<meta property="og:title" content="Network Tool Suite">
+<meta property="og:description" content="Subnet, VLSM, IPv6, base conversion and transfer-time calculators. Runs entirely in your browser.">
+<meta property="og:url" content="https://network-tool-suite.vercel.app/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Network Tool Suite">
+<meta name="twitter:description" content="Client-side network engineering toolkit by ENG.Mohammed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--bg:#070b12;--panel:#0c1320;--line:#1b2a40;--txt:#d6e2f0;--mut:#8196b0;--cy:#22d3ee;--vi:#a78bfa}
+body{background:var(--bg);color:var(--txt);font-family:'IBM Plex Sans',system-ui,sans-serif;
+ background-image:linear-gradient(rgba(34,211,238,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.035) 1px,transparent 1px);background-size:36px 36px}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.lbl{display:block;font-size:.8rem;color:var(--mut);margin-bottom:.3rem}
+.inp{width:100%;background:#050912;border:1px solid var(--line);border-radius:7px;padding:.55rem .75rem;color:var(--txt);font:400 .9rem 'JetBrains Mono',monospace;outline:none}
+.inp:focus,select.inp:focus{border-color:var(--cy);box-shadow:0 0 0 3px rgba(34,211,238,.16)}
+.btn,.btn2{border-radius:7px;padding:.5rem .95rem;font-size:.85rem;font-weight:500;cursor:pointer;transition:box-shadow .15s,background .15s}
+.btn{background:var(--cy);color:#04141a;box-shadow:0 0 18px rgba(34,211,238,.35)}
+.btn:hover{box-shadow:0 0 26px rgba(34,211,238,.6)}
+.btn2{background:transparent;color:var(--txt);border:1px solid var(--line)}
+.btn2:hover{border-color:var(--cy);background:rgba(34,211,238,.07)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--vi);outline-offset:2px}
+.nav{display:flex;width:100%;align-items:center;justify-content:space-between;gap:.5rem;padding:.6rem .8rem;border-radius:8px;color:var(--mut);font-size:.9rem;text-align:left;border:1px solid transparent}
+.nav:hover{color:var(--txt);background:rgba(255,255,255,.03)}
+.nav.on{color:var(--cy);background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.3);box-shadow:0 0 16px rgba(34,211,238,.12)}
+.tag{font:500 .68rem 'JetBrains Mono',monospace;color:var(--vi)}
+table.t{width:100%;border-collapse:collapse;font:400 .78rem 'JetBrains Mono',monospace}
+.t th{color:var(--mut);text-align:left;font-weight:500;padding:.5rem .6rem;border-bottom:1px solid var(--line);white-space:nowrap}
+.t td{padding:.5rem .6rem;border-bottom:1px solid rgba(27,42,64,.6);white-space:nowrap;color:var(--cy)}
+.t td:first-child{color:var(--txt)}
+#toast{position:fixed;left:50%;bottom:1.5rem;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#0c1b26;border:1px solid var(--cy);color:var(--cy);padding:.6rem 1.1rem;border-radius:8px;box-shadow:0 0 22px rgba(34,211,238,.35);transition:.25s;z-index:60;font-size:.88rem}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Sidebar (off-canvas on mobile, fixed on desktop) -->
+<aside id="side" class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transition-transform flex flex-col p-4" style="background:#080e19;border-right:1px solid var(--line)">
+  <div class="flex items-center gap-3 px-1 pb-5">
+    <div class="mono grid place-items-center w-9 h-9 rounded-md text-sm font-medium" style="border:1px solid var(--cy);color:var(--cy);box-shadow:0 0 14px rgba(34,211,238,.4)">NTS</div>
+    <div class="leading-tight"><div class="font-semibold">Network Tool Suite</div><div class="text-xs" style="color:var(--mut)">for network engineers</div></div>
+  </div>
+  <nav id="nav" class="flex flex-col gap-1 overflow-y-auto" aria-label="Tools"></nav>
+  <p class="mt-auto text-xs pt-4" style="color:var(--mut)">Everything runs in your browser. No input is sent to a server.</p>
+  <p class="text-xs pt-3" style="color:var(--mut)">&copy; 2026 <span style="color:var(--cy)">ENG.Mohammed</span></p>
+</aside>
+<div id="scrim" class="fixed inset-0 z-30 bg-black/60 hidden lg:hidden"></div>
+
+<div class="lg:pl-64">
+  <header class="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 lg:hidden" style="background:rgba(7,11,18,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)">
+    <button id="burger" class="btn2" aria-label="Open menu">Menu</button>
+    <span class="font-semibold">Network Tool Suite</span>
+  </header>
+  <main id="view" class="max-w-5xl mx-auto px-4 sm:px-8 py-8"></main>
+  <footer class="max-w-5xl mx-auto px-4 sm:px-8 pb-8 text-xs" style="color:var(--mut)">&copy; 2026 ENG.Mohammed. Network Tool Suite. Released under the MIT License.</footer>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Network Tool Suite | Copyright (c) 2026 ENG.Mohammed | MIT License */
+/* ================= Helpers ================= */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>r.querySelectorAll(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),1800)}
+function download(name,text,mime){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:mime}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+async function copy(text){try{await navigator.clipboard.writeText(text)}catch{const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove()}toast('Results copied to clipboard')}
+
+/* ================= IPv4 math (32-bit unsigned) ================= */
+const parseIP=s=>{const m=String(s).trim().match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);if(!m)return null;const o=m.slice(1).map(Number);if(o.some(x=>x>255))return null;return((o[0]<<24)|(o[1]<<16)|(o[2]<<8)|o[3])>>>0};
+const fmtIP=n=>[n>>>24,(n>>>16)&255,(n>>>8)&255,n&255].join('.');
+const maskOf=c=>c===0?0:(0xFFFFFFFF<<(32-c))>>>0;
+const bin=n=>fmtIP(n).split('.').map(o=>(+o).toString(2).padStart(8,'0')).join('.');
+/** Core subnet math. /31 = point-to-point (RFC 3021), /32 = single host. */
+function subnet(ip,c){const m=maskOf(c),net=(ip&m)>>>0,w=(~m)>>>0,bc=(net|w)>>>0,total=2**(32-c);let first,last,usable;
+  if(c===32){first=last=net;usable=1}else if(c===31){first=net;last=bc;usable=2}else{first=net+1;last=bc-1;usable=total-2}
+  return{net,m,w,bc,first,last,total,usable}}
+function ipKind(n){const a=n>>>24,b=(n>>>16)&255;
+  if(a===10||(a===172&&b>=16&&b<32)||(a===192&&b===168))return'Private (RFC 1918)';
+  if(a===127)return'Loopback';if(a===169&&b===254)return'Link-local (APIPA)';if(a>=224&&a<240)return'Multicast';if(a>=240)return'Reserved';if(a===0)return'This network';
+  if(a===100&&b>=64&&b<128)return'Shared / CGNAT';return'Public'}
+
+/* ================= State: current result + history ================= */
+let cur=null;const HK='nts.history.v1';
+const H={get(){try{return JSON.parse(localStorage.getItem(HK))||[]}catch{return[]}},set(a){try{localStorage.setItem(HK,JSON.stringify(a.slice(0,40)))}catch{}}};
+function err(msg){cur=null;$('#res').innerHTML=`<div class="panel p-4 text-sm" style="border-color:#7f1d1d;color:#fca5a5" role="alert">${esc(msg)}</div>`}
+/** Publish a result: {rows:[[label,value]], table:{head:[], body:[[]]}} */
+function out(key,input,data,save){cur={key,tool:T[key].name,input,...data,time:new Date().toISOString()};paint();if(save)saveHistory()}
+function saveHistory(){if(!cur)return;H.set([{...cur,id:Date.now()},...H.get()]);badge();toast('Saved to history')}
+function textOf(c){let s=`${c.tool}  (${new Date(c.time).toLocaleString()})\n`+'-'.repeat(44)+'\n';
+  (c.rows||[]).forEach(([k,v])=>s+=`${k}: ${v}\n`);
+  if(c.table){s+='\n'+c.table.head.join(' | ')+'\n';c.table.body.forEach(r=>s+=r.join(' | ')+'\n')}return s}
+function paint(){const c=cur;let h=`<div class="panel overflow-hidden"><div class="flex flex-wrap items-center gap-2 px-4 py-3" style="border-bottom:1px solid var(--line)"><span class="font-medium mr-auto">Results</span>
+<button class="btn2" data-a="copy">Copy results</button><button class="btn2" data-a="json">Export JSON</button><button class="btn2" data-a="txt">Export TXT</button><button class="btn2" data-a="save">Save to history</button></div><div class="p-4">`;
+  if(c.rows?.length)h+='<dl class="grid gap-x-6 gap-y-2 md:grid-cols-[230px_1fr]">'+c.rows.map(([k,v])=>`<dt class="text-sm" style="color:var(--mut)">${esc(k)}</dt><dd class="mono text-sm break-all mb-2 md:mb-0" style="color:var(--cy)">${esc(v)}</dd>`).join('')+'</dl>';
+  if(c.table)h+=`<div class="overflow-x-auto ${c.rows?.length?'mt-5':''}"><table class="t"><thead><tr>${c.table.head.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${c.table.body.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  $('#res').innerHTML=h+'</div></div>'}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||!cur)return;const a=b.dataset.a,f=cur.key+'-'+Date.now();
+  if(a==='copy')copy(textOf(cur));
+  if(a==='json')download(f+'.json',JSON.stringify({tool:cur.tool,timestamp:cur.time,input:cur.input,results:Object.fromEntries(cur.rows||[]),table:cur.table||null},null,2),'application/json');
+  if(a==='txt')download(f+'.txt',textOf(cur),'text/plain');
+  if(a==='save')saveHistory()});
+
+/* ================= Tools ================= */
+const T={};
+/** Wire a tool's form: live recalculation on input, history-saving on the Calculate button. */
+function bind(root,run){root.addEventListener('input',e=>run(false,e.target));root.querySelector('[data-go]')?.addEventListener('click',()=>run(true))}
+
+/* ---- 1. Subnet calculator ---- */
+T.subnet={name:'Subnet Calculator',tag:'IPv4',desc:'Network, mask, broadcast and host range for any IPv4 address and prefix length.',
+html:`<div class="grid gap-3 sm:grid-cols-[1fr_120px]"><div><label class="lbl" for="s-ip">IPv4 address (or address/prefix)</label><input id="s-ip" class="inp" value="192.168.10.37" autocomplete="off" spellcheck="false"></div>
+<div><label class="lbl" for="s-c">CIDR prefix</label><input id="s-c" type="number" min="0" max="32" class="inp" value="24"></div></div>
+<input id="s-r" type="range" min="0" max="32" value="24" class="w-full mt-4 accent-cyan-400" aria-label="CIDR slider"><div class="mt-4"><button class="btn" data-go>Calculate</button></div>`,
+init(r){$('#s-r').oninput=e=>$('#s-c').value=e.target.value;$('#s-c').addEventListener('input',e=>$('#s-r').value=e.target.value);bind(r,(s)=>this.run(s))},
+run(save){let v=$('#s-ip').value.trim();if(v.includes('/')){const[a,b]=v.split('/');v=a;$('#s-c').value=b;$('#s-r').value=b}
+  const ip=parseIP(v),c=+$('#s-c').value;
+  if(ip===null)return err('Invalid IPv4 address. Use dotted format, for example 192.168.1.10.');
+  if(!Number.isInteger(c)||c<0||c>32)return err('CIDR prefix must be a whole number from 0 to 32.');
+  const r=subnet(ip,c);
+  out('subnet',{ip:fmtIP(ip),cidr:c},{rows:[['Network Address',`${fmtIP(r.net)}/${c}`],['Subnet Mask',fmtIP(r.m)],['Wildcard Mask',fmtIP(r.w)],['Broadcast Address',fmtIP(r.bc)],
+  ['Usable Host Range',c===32?fmtIP(r.net):`${fmtIP(r.first)} - ${fmtIP(r.last)}`],['Total IPs',r.total.toLocaleString()],['Usable IPs',r.usable.toLocaleString()],
+  ['Binary Subnet Mask',bin(r.m)],['Binary IP Address',bin(ip)],['Address Type',ipKind(ip)]]},save)},
+load(i){$('#s-ip').value=i.ip;$('#s-c').value=$('#s-r').value=i.cidr;this.run(false)}};
+
+/* ---- 2. VLSM planner ---- */
+const vrow=(n='',h='')=>`<div class="vr grid grid-cols-[1fr_110px_auto] gap-2 mb-2"><input class="inp" placeholder="Subnet name" aria-label="Subnet name" value="${esc(n)}" data-n><input class="inp" type="number" min="1" placeholder="Hosts" aria-label="Hosts needed" value="${h}" data-h><button class="btn2" data-rm aria-label="Remove subnet">Remove</button></div>`;
+T.vlsm={name:'VLSM Calculator',tag:'IPv4',desc:'Split a parent network into variable-size subnets sized by the hosts each department needs.',
+html:`<label class="lbl" for="v-net">Parent network (CIDR)</label><input id="v-net" class="inp mb-4" value="192.168.0.0/24" spellcheck="false">
+<div class="grid grid-cols-[1fr_110px_auto] gap-2 mb-1 text-xs" style="color:var(--mut)"><span>Name</span><span>Hosts needed</span><span class="w-[76px]"></span></div><div id="v-rows"></div>
+<div class="mt-3 flex gap-2"><button class="btn2" data-add>Add subnet</button><button class="btn" data-go>Calculate</button></div>`,
+defaults:[['Sales',60],['Engineering',28],['Guest Wi-Fi',12],['WAN link',2]],
+init(r){$('#v-rows').innerHTML=this.defaults.map(d=>vrow(...d)).join('');
+  r.addEventListener('click',e=>{if(e.target.closest('[data-add]')){$('#v-rows').insertAdjacentHTML('beforeend',vrow());this.run(false)}
+    const x=e.target.closest('[data-rm]');if(x){x.closest('.vr').remove();this.run(false)}});bind(r,s=>this.run(s))},
+run(save){const m=$('#v-net').value.trim().match(/^([\d.]+)\/(\d{1,2})$/),ip=m&&parseIP(m[1]),c=m&&+m[2];
+  if(!m||ip===null||c>30)return err('Enter the parent network in CIDR form, for example 192.168.0.0/24 (prefix /0 to /30).');
+  const rq=[...$$('.vr')].map(r=>({name:$('[data-n]',r).value.trim()||'Unnamed',hosts:parseInt($('[data-h]',r).value)})).filter(x=>x.hosts>0);
+  if(!rq.length)return err('Add at least one subnet with 1 or more hosts.');
+  const base=(ip&maskOf(c))>>>0,end=base+2**(32-c),body=[];let p=base;
+  /* Largest-first allocation keeps every block aligned on its natural boundary. */
+  for(const q of [...rq].sort((a,b)=>b.hosts-a.hosts)){const bits=Math.max(2,Math.ceil(Math.log2(q.hosts+2))),size=2**bits,pre=32-bits;p=Math.ceil(p/size)*size;
+    if(p+size>end)return err(`Not enough space for "${q.name}": ${q.hosts} hosts needs a /${pre} block. Use a larger parent network or reduce host counts.`);
+    const r=subnet(p,pre);body.push([q.name,q.hosts,size-2,`${fmtIP(p)}/${pre}`,fmtIP(r.m),`${fmtIP(r.first)} - ${fmtIP(r.last)}`,fmtIP(r.bc)]);p+=size}
+  const tot=end-base,used=p-base;
+  out('vlsm',{network:`${fmtIP(base)}/${c}`,subnets:rq},{rows:[['Parent Network',`${fmtIP(base)}/${c}`],['Total Addresses',tot.toLocaleString()],['Allocated',used.toLocaleString()],['Free',(tot-used).toLocaleString()],['Utilization',(used/tot*100).toFixed(1)+'%']],
+  table:{head:['Name','Hosts needed','Usable','Network','Mask','Usable range','Broadcast'],body}},save)},
+load(i){$('#v-net').value=i.network;$('#v-rows').innerHTML=i.subnets.map(s=>vrow(s.name,s.hosts)).join('');this.run(false)}};
+
+/* ---- 3. IP base converter ---- */
+const CP={d:parseIP,b:s=>{s=s.replace(/[.\s]/g,'');return/^[01]{32}$/.test(s)?parseInt(s,2)>>>0:null},
+  h:s=>{s=s.replace(/^0x|[.:\s]/gi,'');return/^[0-9a-f]{8}$/i.test(s)?parseInt(s,16)>>>0:null},i:s=>/^\d{1,10}$/.test(s.trim())&&+s<=4294967295?+s:null};
+const hexIP=n=>fmtIP(n).split('.').map(o=>(+o).toString(16).toUpperCase().padStart(2,'0')).join('.');
+const CF={d:fmtIP,b:bin,h:hexIP,i:String},CN={d:'decimal',b:'binary',h:'hex',i:'integer'};
+T.convert={name:'IP Base Converter',tag:'Dec / Bin / Hex',desc:'Type in any field and the other three update instantly.',
+html:`<div class="grid gap-3 md:grid-cols-2">`+[['d','Dotted decimal'],['b','Binary (32 bits)'],['h','Hexadecimal'],['i','32-bit integer']].map(([k,l])=>`<div><label class="lbl" for="c-${k}">${l}</label><input id="c-${k}" data-f="${k}" class="inp" spellcheck="false" autocomplete="off"></div>`).join('')+`</div>
+<div class="mt-4"><button class="btn" data-go>Convert and save</button></div>`,
+init(r){bind(r,(s,t)=>this.run(s,t));$('#c-d').value='192.168.10.37';this.run(false)},
+run(save,t){const k=t?.dataset?.f||'d',v=CP[k]($('#c-'+k).value);
+  if(v===null)return err(`Invalid ${CN[k]} value. Check the format and range (0 to 4294967295).`);
+  for(const f in CF)if(f!==k)$('#c-'+f).value=CF[f](v);
+  out('convert',{ip:fmtIP(v)},{rows:[['Dotted Decimal',fmtIP(v)],['Binary',bin(v)],['Hexadecimal',hexIP(v)],['Hexadecimal (0x)','0x'+v.toString(16).toUpperCase().padStart(8,'0')],['Integer',String(v)]]},save)},
+load(i){$('#c-d').value=i.ip;this.run(false)}};
+
+/* ---- 4. IPv6 ---- */
+/** Parse an IPv6 address with optional /prefix into a BigInt. Returns null when invalid. */
+function parse6(s){s=s.trim().split('%')[0];let p=128;
+  if(s.includes('/')){const[a,b]=s.split('/');if(!/^\d{1,3}$/.test(b)||+b>128)return null;p=+b;s=a}
+  if(!/^[0-9a-f:]+$/i.test(s)||s.split('::').length>2)return null;let g;
+  if(s.includes('::')){const[h,t]=s.split('::'),A=h?h.split(':'):[],B=t?t.split(':'):[];if(A.length+B.length>7)return null;g=[...A,...Array(8-A.length-B.length).fill('0'),...B]}else g=s.split(':');
+  if(g.length!==8||g.some(x=>!/^[0-9a-f]{1,4}$/i.test(x)))return null;
+  return{g:g.map(x=>parseInt(x,16)),p}}
+/** RFC 5952 compression: collapse the longest run (>=2) of zero groups. */
+function comp6(g){let bs=-1,bl=0;for(let i=0;i<8;){if(g[i]===0){let j=i;while(j<8&&g[j]===0)j++;if(j-i>bl){bs=i;bl=j-i}i=j}else i++}
+  const h=g.map(x=>x.toString(16));return bl<2?h.join(':'):h.slice(0,bs).join(':')+'::'+h.slice(bs+bl).join(':')}
+const big6=g=>g.reduce((a,x)=>(a<<16n)|BigInt(x),0n),grp6=n=>Array.from({length:8},(_,i)=>Number((n>>BigInt(112-16*i))&0xffffn));
+function kind6(g){const n=big6(g);if(n===0n)return'Unspecified (::)';if(n===1n)return'Loopback (::1)';if(g[0]===0x2001&&g[1]===0xdb8)return'Documentation (2001:db8::/32)';
+  if(g[0]>>8===0xff)return'Multicast (ff00::/8)';if((g[0]&0xffc0)===0xfe80)return'Link-local (fe80::/10)';if((g[0]&0xfe00)===0xfc00)return'Unique local (fc00::/7)';
+  if((g[0]&0xe000)===0x2000)return'Global unicast (2000::/3)';return'Other / reserved'}
+T.ipv6={name:'IPv6 Toolkit',tag:'IPv6',desc:'Compress or expand an IPv6 address and get its prefix details.',
+html:`<label class="lbl" for="6-in">IPv6 address (optionally with /prefix)</label><input id="6-in" class="inp" value="2001:0db8:85a3:0000:0000:8a2e:0370:7334/64" spellcheck="false" autocomplete="off"><div class="mt-4"><button class="btn" data-go>Calculate</button></div>`,
+init(r){bind(r,s=>this.run(s))},
+run(save){const r=parse6($('#6-in').value);if(!r)return err('Invalid IPv6 address. Example: 2001:db8::1/64 (at most one "::", groups of 1 to 4 hex digits).');
+  const n=big6(r.g),p=r.p,hm=(1n<<BigInt(128-p))-1n,net=n-(n&hm),last=net|hm,hex=r.g.map(x=>x.toString(16).padStart(4,'0'));
+  out('ipv6',{addr:$('#6-in').value.trim()},{rows:[['Expanded',hex.join(':')],['Compressed',comp6(r.g)],['Prefix Length','/'+p],['Network',`${comp6(grp6(net))}/${p}`],
+  ['First Address',comp6(grp6(net))],['Last Address',comp6(grp6(last))],['Total Addresses',`2^${128-p} = ${(1n<<BigInt(128-p)).toLocaleString('en-US')}`],
+  ['/64 Subnets Inside',p<=64?(1n<<BigInt(64-p)).toLocaleString('en-US'):'n/a (prefix longer than /64)'],['Address Type',kind6(r.g)],['Reverse DNS',hex.join('').split('').reverse().join('.')+'.ip6.arpa']]},save)},
+load(i){$('#6-in').value=i.addr;this.run(false)}};
+
+/* ---- 5. Transfer time / throughput ---- */
+function fmtTime(s){if(s<1)return(s*1000).toFixed(2)+' ms';const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=(s%60).toFixed(s<60?2:0);return[d&&d+'d',h&&h+'h',m&&m+'m',x+'s'].filter(Boolean).join(' ')}
+const opt=(a,sel)=>a.map(x=>`<option${x===sel?' selected':''}>${x}</option>`).join('');
+T.speed={name:'Transfer Time Calculator',tag:'Bandwidth',desc:'Estimate how long a transfer takes for a given link speed and protocol efficiency.',
+html:`<div class="grid gap-3 sm:grid-cols-2"><div><label class="lbl" for="b-size">File size</label><div class="flex gap-2"><input id="b-size" type="number" min="0" step="any" class="inp" value="4.7"><select id="b-su" class="inp w-28">${opt(['B','KB','MB','GB','TB'],'GB')}</select></div></div>
+<div><label class="lbl" for="b-bw">Link bandwidth</label><div class="flex gap-2"><input id="b-bw" type="number" min="0" step="any" class="inp" value="100"><select id="b-bu" class="inp w-28">${opt(['Kbps','Mbps','Gbps'],'Mbps')}</select></div></div>
+<div><label class="lbl" for="b-eff">Protocol efficiency (%) after TCP/IP overhead</label><input id="b-eff" type="number" min="1" max="100" class="inp" value="94"></div>
+<div><label class="lbl" for="b-base">Size unit base</label><select id="b-base" class="inp"><option value="1000">1000 (KB, MB, GB)</option><option value="1024">1024 (KiB, MiB, GiB)</option></select></div></div>
+<div class="mt-4"><button class="btn" data-go>Calculate</button></div>`,
+init(r){bind(r,s=>this.run(s))},
+run(save){const sz=+$('#b-size').value,bw=+$('#b-bw').value,ef=+$('#b-eff').value,base=+$('#b-base').value,su=$('#b-su').value,bu=$('#b-bu').value;
+  if(!(sz>0)||!(bw>0))return err('File size and bandwidth must be greater than 0.');if(!(ef>0&&ef<=100))return err('Efficiency must be between 1 and 100.');
+  const bits=sz*base**['B','KB','MB','GB','TB'].indexOf(su)*8,bps=bw*1000**(['Kbps','Mbps','Gbps'].indexOf(bu)+1),eb=bps*ef/100;
+  out('speed',{size:sz,sizeUnit:su,bandwidth:bw,bwUnit:bu,efficiency:ef,base},{rows:[['Data Size',`${bits.toLocaleString()} bits`],['Link Rate',`${(bps/1e6).toLocaleString()} Mbps`],
+  ['Ideal Transfer Time (100%)',fmtTime(bits/bps)],[`Realistic Time (${ef}%)`,fmtTime(bits/eb)],['Effective Throughput',`${(eb/1e6).toFixed(2)} Mbps`],['Effective Throughput (bytes)',`${(eb/8/1e6).toFixed(2)} MB/s`]]},save)},
+load(i){$('#b-size').value=i.size;$('#b-su').value=i.sizeUnit;$('#b-bw').value=i.bandwidth;$('#b-bu').value=i.bwUnit;$('#b-eff').value=i.efficiency;$('#b-base').value=i.base;this.run(false)}};
+
+/* ================= Router, navigation, history view ================= */
+const KEYS=Object.keys(T);
+function badge(){const n=H.get().length;$('#nav-h').textContent=n?n:''}
+function buildNav(){$('#nav').innerHTML=KEYS.map(k=>`<button class="nav" data-k="${k}"><span>${T[k].name}</span><span class="tag">${T[k].tag}</span></button>`).join('')+
+  `<button class="nav mt-3" data-k="history"><span>History</span><span class="tag" id="nav-h"></span></button>`;
+  $('#nav').onclick=e=>{const b=e.target.closest('[data-k]');if(b){go(b.dataset.k);closeSide()}};badge()}
+function head(t,d){return`<h1 class="text-2xl sm:text-3xl font-semibold tracking-tight">${t}</h1><p class="mt-1 mb-6 text-sm max-w-xl" style="color:var(--mut)">${d}</p>`}
+function render(k){if(k!=='history'&&!T[k])k='subnet';$$('.nav').forEach(b=>b.classList.toggle('on',b.dataset.k===k));cur=null;
+  if(k==='history')return renderHistory();
+  $('#view').innerHTML=head(T[k].name,T[k].desc)+`<section class="panel p-5" id="form" aria-label="${T[k].name} inputs">${T[k].html}</section><div id="res" class="mt-5"></div>`;
+  T[k].init($('#form'));if(k!=='convert')T[k].run(false)}
+function go(k,replace){history.replaceState(null,'','#'+k);render(k);scrollTo(0,0)}
+function renderHistory(){const a=H.get();
+  $('#view').innerHTML=head('History','Your 40 most recent saved calculations, stored only in this browser.')+(a.length?`<div class="flex gap-2 mb-4"><button class="btn2" data-h="export">Export all (JSON)</button><button class="btn2" data-h="clear">Clear history</button></div>`+
+  a.map(c=>`<div class="panel p-4 mb-3 flex flex-wrap items-center gap-3"><div class="mr-auto min-w-0"><div class="font-medium">${esc(c.tool)}</div><div class="mono text-xs break-all" style="color:var(--cy)">${esc(c.rows?.[0]?.join(': ')||'')}</div>
+  <div class="text-xs" style="color:var(--mut)">${new Date(c.time).toLocaleString()}</div></div><button class="btn2" data-h="open" data-id="${c.id}">Restore</button><button class="btn2" data-h="del" data-id="${c.id}">Delete</button></div>`).join('')
+  :'<div class="panel p-6 text-sm" style="color:var(--mut)">Nothing saved yet. Press Calculate or "Save to history" in any tool to keep a result here.</div>');
+  $('#view').onclick=e=>{const b=e.target.closest('[data-h]');if(!b)return;const a=H.get(),i=a.find(x=>String(x.id)===b.dataset.id);
+    if(b.dataset.h==='open'&&i){go(i.key);T[i.key].load(i.input)}
+    if(b.dataset.h==='del'){H.set(a.filter(x=>x!==i&&String(x.id)!==b.dataset.id));badge();renderHistory()}
+    if(b.dataset.h==='clear'&&confirm('Delete all saved history?')){H.set([]);badge();renderHistory()}
+    if(b.dataset.h==='export')download('nts-history.json',JSON.stringify(a,null,2),'application/json')}}
+const closeSide=()=>{$('#side').classList.add('-translate-x-full');$('#scrim').classList.add('hidden')};
+$('#burger').onclick=()=>{$('#side').classList.remove('-translate-x-full');$('#scrim').classList.remove('hidden')};
+$('#scrim').onclick=closeSide;
+addEventListener('hashchange',()=>render(location.hash.slice(1)));
+buildNav();render(location.hash.slice(1)||'subnet');
+</script>
+</body>
+</html>
